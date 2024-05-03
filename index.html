@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" ng-app="myApp">
+
+<head>
+    <title>Index</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS v5.2.1 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+
+<body ng-controller="homeCtrl">
+    <header>
+        <!-- place navbar here -->
+    </header>
+    <main class="container">
+        <a href="/views/users/login.html" class="btn btn-primary mb-3 mt-3">Đăng nhập</a>
+        <a href="/views/users/register.html" class="btn btn-primary mb-3 mt-3">Đăng ký</a>
+        <form>
+            <input type="text" placeholder="Tìm kiếm tài khoản" ng-model="keyword">
+            <button ng-click="search()">Tim kiếm</button>
+        </form>
+        <table class="table table-hover">
+            <tr>
+                <th>Username</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Active</th>
+                <th></th>
+            </tr>
+            <tr ng-repeat="(index, x) in listData">
+                <td>{{ x.username }}</td>
+                <td>{{ x.name }}</td>
+                <td>{{ x.phone }}</td>
+                <td>{{ x.email }}</td>
+                <td>{{ getRoleText(x.role) }}</td>
+                <td class="text-primary fw-bold">{{ x.active ? "Hoạt động":"Đã khóa" }}</td>
+                <td>
+                    <button class="btn btn-danger me-2 w-50" ng-click="setActive(index)">
+                        {{ x.active ? "Khóa" : "Khôi phục" }}
+                    </button>
+                    <button class="btn btn-primary" ng-click="openModal(x)">
+                        Cập nhật
+                    </button>
+                </td>
+            </tr>
+        </table>
+        <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updateModalLabel">Thông tin cập nhật</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" ng-model="modalData.username"
+                                    readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="password" ng-model="modalData.name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" ng-model="modalData.phone">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" ng-model="modalData.email">
+                            </div>
+                            <button class="btn btn-primary float-end" ng-click="updateInfo()">Cập nhật</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <!-- place footer here -->
+    </footer>
+    <!-- Bootstrap JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+
+    <script>
+        var app = angular.module('myApp', []);
+
+        app.controller('homeCtrl', function ($scope, $http) {
+            $scope.modalData = {}; // Biến để lưu thông tin của phần tử được chọn
+            $scope.listData;
+            $scope.keyword;
+
+            $http.get('/api/users_api.php').then(function (resp) {
+                $scope.listData = resp.data;
+            })
+
+            $scope.search = function () {
+                $http.get('/api/users_api.php?keyword=' + $scope.keyword).then(function (resp) {
+                    if (resp.data.hasOwnProperty('message')) {
+                        alert(resp.data.message);
+                    } else {
+                        $scope.listData = resp.data;
+                    }
+                })
+            }
+
+            $scope.setActive = function (index) {
+                $scope.user = $scope.listData[index];
+                if ($scope.user.active) {
+                    $http.delete('/api/users_api.php?username=' + $scope.user.username).then(function (resp) {
+                        if (resp.status === 200) {
+                            alert(resp.data.message);
+                            location.reload();
+                        }
+                    })
+                } else {
+                    $http.put('/api/users_api.php?username=' + $scope.user.username).then(function (resp) {
+                        if (resp.status === 200) {
+                            alert(resp.data.message);
+                            location.reload();
+                        }
+                    })
+                }
+            }
+
+            $scope.updateInfo = function () {
+                $http.put('/api/users_api.php?update-user=' + $scope.modalData.username, $scope.modalData).then(function (resp) {
+                    if (resp.status === 200) {
+                        alert(resp.data.message);
+                        location.reload();
+                    }
+                })
+            }
+
+            $scope.openModal = function (item) {
+                $scope.modalData = angular.copy(item);
+                $('#updateModal').modal('show'); // Hiển thị modal
+            };
+
+            $scope.getRoleText = function (role) {
+                switch (role) {
+                    case 1:
+                        return 'Khách';
+                    case 2:
+                        return 'Nhân viên';
+                    case 3:
+                        return 'Admin';
+                    default:
+                        return 'Khách';
+                }
+            };
+        })
+    </script>
+</body>
+
+</html>

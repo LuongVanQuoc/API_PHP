@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" ng-app="myApp">
+
+<head>
+    <title>Login</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS v5.2.1 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+
+<body ng-controller="loginCtrl">
+    <header>
+        <!-- place navbar here -->
+    </header>
+    <main>
+        <div class="container justify-content-center">
+            <h2 class="mt-5 mb-4">Login</h2>
+            <form class="w-25">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" ng-model="user.username"
+                        placeholder="Enter your username">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" ng-model="user.password"
+                        placeholder="Enter your password">
+                </div>
+                <button ng-click="login()" class="btn btn-primary">Đăng Nhập</button>
+            </form>
+        </div>
+    </main>
+    <footer>
+        <!-- place footer here -->
+    </footer>
+    <!-- Bootstrap JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+        crossorigin="anonymous"></script>
+
+    <script>
+        var app = angular.module('myApp', []);
+
+        app.controller('loginCtrl', function ($scope, $http) {
+            $scope.user = {
+                username: '',
+                password: ''
+            }
+
+            $scope.login = function () {
+                $http.get('/api/users_api.php?username=' + $scope.user.username +
+                    "&password=" + $scope.user.password).then(function (resp) {
+                        if (resp.status === 200) {
+                            alert(resp.data.message);
+                            location.href = "/index.html";
+                        }
+                    }, function (error) {
+                        // Xử lý lỗi nếu có
+                        alert(error.data.message);
+                    });
+            }
+        })
+    </script>
+</body>
+
+</html>
