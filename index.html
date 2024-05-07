@@ -27,6 +27,9 @@
             <input type="text" placeholder="Tìm kiếm tài khoản" ng-model="keyword">
             <button ng-click="search()">Tim kiếm</button>
         </form>
+        <button class="btn btn-primary mt-2" ng-click="openCreateModal()">
+            Tạo tài khoản
+        </button>
         <table class="table table-hover">
             <tr>
                 <th>Username</th>
@@ -81,6 +84,39 @@
                                 <input type="email" class="form-control" id="email" ng-model="modalData.email">
                             </div>
                             <button class="btn btn-primary float-end" ng-click="updateInfo()">Cập nhật</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updateModalLabel">Thông tin tài khoản</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" ng-model="modalData.username">
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Name</label>
+                                <input type="text" class="form-control" ng-model="modalData.name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="phone" ng-model="modalData.phone">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" ng-model="modalData.email">
+                            </div>
+                            <button class="btn btn-success" ng-click="createShipper()">Tạo tài khoản shipper</button>
+                            <button class="btn btn-primary float-end" ng-click="createStaff()">Tạo tài khoản nhân viên</button>
                         </form>
                     </div>
                 </div>
@@ -149,9 +185,33 @@
                 })
             }
 
+            $scope.createStaff = function(){
+                $http.post('/api/users_api.php?create-staff', $scope.modalData).then(resp => {
+                    if(resp.status === 200){
+                        alert(resp.data.message);
+                        location.reload();
+                    }else{
+                        alert(resp.data.message);
+                    }
+                })
+            }
+
+            $scope.createShipper = function(){
+                $http.post('/api/users_api.php?create-shipper', $scope.modalData).then(resp => {
+                    if(resp.status === 200){
+                        alert(resp.data.message);
+                        location.reload();
+                    }
+                })
+            }
+
             $scope.openModal = function (item) {
                 $scope.modalData = angular.copy(item);
                 $('#updateModal').modal('show'); // Hiển thị modal
+            };
+
+            $scope.openCreateModal = function () {
+                $('#createModal').modal('show'); // Hiển thị modal
             };
 
             $scope.getRoleText = function (role) {
@@ -161,7 +221,9 @@
                     case 2:
                         return 'Nhân viên';
                     case 3:
-                        return 'Admin';
+                        return 'Shipper';
+                    case 4:
+                        return 'Quản trị viên';
                     default:
                         return 'Khách';
                 }

@@ -16,6 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $keyword = $_GET['keyword'];
 
         searchByKeyword($conn, $keyword);
+    } elseif ((isset($_GET['list-user']))) {
+        getListUserAndRole($conn);
     } else {
         getAllUsers($conn);
     }
@@ -33,6 +35,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $phone = $input->phone;
 
         register($conn, $username, $password, $email, $phone);
+    } elseif ((isset($_GET['create-staff']))) {
+        $inputJSON = file_get_contents('php://input');
+        $input = json_decode($inputJSON);
+
+        $username = $input->username;
+        $name = $input->name;
+        $email = $input->email;
+        $phone = $input->phone;
+
+        if (empty($username) || empty($name) || empty($phone) || empty($email)) {
+            $response = array('message' => 'Trống thông tin.');
+            echo json_encode($response);
+        } else {
+            createAccount($conn, $username, $name, $email, $phone, 2);
+        }
+    } elseif ((isset($_GET['create-shipper']))) {
+        $inputJSON = file_get_contents('php://input');
+        $input = json_decode($inputJSON);
+
+        $username = $input->username;
+        $name = $input->name;
+        $email = $input->email;
+        $phone = $input->phone;
+
+        if (empty($username) || empty($name) || empty($phone) || empty($email)) {
+            $response = array('message' => 'Trống thông tin.');
+            echo json_encode($response);
+        } else {
+            createAccount($conn, $username, $name, $email, $phone, 3);
+        }
     }
 }
 
@@ -75,7 +107,23 @@ function getAllUsers($conn)
 {
     try {
         $conn->exec("SET NAMES 'utf8'");
-        $result = $conn->query("SELECT * FROM users WHERE role = 1 OR role = 2 ORDER BY active DESC, role ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $result = $conn->query("SELECT * FROM users WHERE role = 1 OR role = 2 OR role = 3 ORDER BY active DESC, role ASC")->fetchAll(PDO::FETCH_ASSOC);
+        // Trả về kết quả dưới dạng JSON
+        header('Content-Type: application/json');
+        echo json_encode($result);
+    } catch (PDOException $e) {
+        // Xử lý lỗi nếu có
+        echo json_encode(['error' => 'Lỗi truy vấn: ' . $e->getMessage()]);
+    }
+}
+
+function getListUserAndRole($conn)
+{
+    try {
+        $conn->exec("SET NAMES 'utf8'");
+        $result = $conn->query("SELECT * FROM users u INNER JOIN roles r ON u.role = r.id
+                                WHERE u.role = 1 OR u.role = 2 OR u.role = 3 
+                                ORDER BY active DESC, role ASC")->fetchAll(PDO::FETCH_ASSOC);
         // Trả về kết quả dưới dạng JSON
         header('Content-Type: application/json');
         echo json_encode($result);
@@ -105,6 +153,20 @@ function getUserById($conn, $id)
         // Xử lý lỗi nếu có
         echo json_encode(['error' => 'Lỗi truy vấn: ' . $e->getMessage()]);
     }
+}
+
+function createAccount($conn, $username, $name, $email, $phone, $role)
+{
+    $username = $conn->quote($username);
+    $name = $conn->quote($name);
+    $phone = $conn->quote($phone);
+    $email = $conn->quote($email);
+    $role = $conn->quote($role);
+
+    $conn->query("INSERT INTO users (username, name,  pass, phone, email, image, role, active) 
+                    VALUES ($username, $name, 123456, $phone, $email, 'default_image.jpg', $role, 1)");
+    $response = array('message' => 'Tạo tài khoản thành công!');
+    echo json_encode($response);
 }
 
 function updateInfo($conn, $id, $infoName, $infoPhone, $infoEmail)
@@ -183,7 +245,8 @@ function register($conn, $regName, $regPass, $regEmail, $regPhone)
             http_response_code(400); // Bad request
             echo json_encode($response);
         } else {
-            $sql = ("INSERT INTO users (username, pass, phone, email, image, role, active) VALUES ($username, $password, $phone, $email, 'default_image.jpg', 1, 1)");
+            $sql = ("INSERT INTO users (username, pass, phone, email, image, role, active) 
+                    VALUES ($username, $password, $phone, $email, 'default_image.jpg', 1, 1)");
             // Kiểm tra kết quả trả về
             $conn->query($sql);
 
